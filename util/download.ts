@@ -70,9 +70,10 @@ async function promiseWrapper<T>(
 
 async function Download() {
   const stream = got.stream(downloadSrc);
-  const end = new Promise<void>((resolve) => {
-    stream.once('close', () => resolve());
-    stream.once('end', () => resolve());
+  const end = new Promise<void>((resolve, reject) => {
+    stream.once('error', reject)
+    stream.once('close', resolve);
+    stream.once('end', resolve);
   });
   const data: Buffer[] = [];
   stream.on('data', (chunk) => data.push(chunk));

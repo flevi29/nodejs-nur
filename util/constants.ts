@@ -1,9 +1,8 @@
 import * as Path from 'path';
 
-// Change this in case of updated package
-const tag = 'ID232_nurapi_native_v1.9.27.0';
-const downloadSrc = `https://github.com/NordicID/nur_sdk/archive/refs/tags/${tag}.zip`;
-const sourceDir = `nur_sdk-${tag}/native`;
+// Change these two in case you want a specific version
+const downloadSrc = 'https://github.com/NordicID/nur_sdk/archive/refs/heads/master.zip';
+const sourceDir = 'nur_sdk-master/native';
 
 const lib_x86base = `x86/`;
 const libSrc_x86 = `${sourceDir}/windows/x86/`;
@@ -19,7 +18,6 @@ export {
   lib_x64base,
   lib_x86base,
   includesBase,
-  tag,
   downloadSrc,
   sourceDir,
   libSrc_x86,
