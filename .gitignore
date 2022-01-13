@@ -1,0 +1,12 @@
+### NUR ###
+NUR-includes
+NUR-lib
+
+# TypeScript compiled
+dist
+
+# Compiled binary addons (https://nodejs.org/api/addons.html)
+build
+
+# Dependency directories
+node_modules

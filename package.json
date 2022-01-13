@@ -1,0 +1,64 @@
+{
+  "name": "nodejs-nur",
+  "version": "0.1.0",
+  "description": "NUR Electron addon",
+  "engines": {
+    "node": ">=16.0"
+  },
+  "engineStrict": true,
+  "type": "module",
+  "os": [
+    "win32"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "app": "node main.js",
+    "get-dependencies": "rimraf dist && tsc -p tsconfig.json && node dist/initLib.js",
+    "install": "node-gyp rebuild --target=16.0.6 --arch=x64 --dist-url=https://electronjs.org/headers",
+    "prepublishOnly": "rimraf dist && tsc -p tsconfig.build.json",
+    "lint": "eslint \"src/**/*.ts\" --fix",
+    "format": "prettier --write \"src/**/*.ts\" \"util/**/*.ts\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FLevent29/nodejs-nur.git"
+  },
+  "files": [
+    "dist",
+    "src/addon/include",
+    "src/addon/NUR",
+    "binding.gyp",
+    "NUR-includes",
+    "NUR-lib"
+  ],
+  "author": "Fodor Levente <levente.f29@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/FLevent29/nodejs-nur/issues"
+  },
+  "homepage": "https://github.com/FLevent29/nodejs-nur#readme",
+  "devDependencies": {
+    "rimraf": "^3.0.2",
+    "@types/node": "^17.0.8",
+    "@typescript-eslint/eslint-plugin": "^5.9.1",
+    "@typescript-eslint/parser": "^5.9.1",
+    "chalk": "^5.0.0",
+    "fflate": "^0.7.2",
+    "eslint": "^8.6.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "got": "^12.0.1",
+    "prettier": "^2.5.1",
+    "typescript": "^4.5.4"
+  },
+  "dependencies": {
+    "typed-emitter": "^1.4.0",
+    "node-gyp": "^8.4.1",
+    "node-addon-api": "^4.2.0",
+    "bindings": "^1.5.0"
+  }
+}
