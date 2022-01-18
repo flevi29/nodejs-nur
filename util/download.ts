@@ -4,51 +4,51 @@ import * as fs from 'fs/promises';
 import * as Path from 'path';
 import { PrinterEvent, Mode } from './types/general';
 import {
-  downloadSrc,
-  includesDest,
-  includesSrc,
-  libDest_x64,
-  libDest_x86,
-  libSrc_x64,
-  libSrc_x86,
-  lib_x86base,
-  lib_x64base,
-  includesBase,
+  DOWNLOAD_SRC,
+  INCLUDE_DEST,
+  INCLUDE_SRC,
+  LIB_X64_DEST,
+  LIB_X86_DEST,
+  LIB_X64_SRC,
+  LIB_X86_SRC,
+  LIB_x86_BASE,
+  LIB_X64_BASE,
+  INCLUDE_BASE,
 } from './constants.js';
 import { SetPrintFail, SetPrintSuccess, StartPrinterOn } from './printer.js';
 
 async function CopyContents(mode: Mode, files: { [k: string]: Uint8Array }) {
-  const x86reg = new RegExp(`^${libSrc_x86}.+`);
-  const x64reg = new RegExp(`^${libSrc_x64}.+`);
-  const incReg = new RegExp(`^${includesSrc}.+`);
+  const x86reg = new RegExp(`^${LIB_X86_SRC}.+`);
+  const x64reg = new RegExp(`^${LIB_X64_SRC}.+`);
+  const incReg = new RegExp(`^${INCLUDE_SRC}.+`);
   await Promise.all([
-    fs.mkdir(libDest_x64, { recursive: true }),
-    fs.mkdir(libDest_x86, { recursive: true }),
-    fs.mkdir(includesDest, { recursive: true }),
+    fs.mkdir(LIB_X64_DEST, { recursive: true }),
+    fs.mkdir(LIB_X86_DEST, { recursive: true }),
+    fs.mkdir(INCLUDE_DEST, { recursive: true }),
   ]);
   const promises = [];
   for (const [fileName, u8arr] of Object.entries(files)) {
     if (x86reg.test(fileName)) {
       const path = Path.join(
-        libDest_x86,
+        LIB_X86_DEST,
         fileName.substring(
-          fileName.lastIndexOf(lib_x86base) + lib_x86base.length,
+          fileName.lastIndexOf(LIB_x86_BASE) + LIB_x86_BASE.length,
         ),
       );
       promises.push(fs.writeFile(path, u8arr));
     } else if (x64reg.test(fileName)) {
       const path = Path.join(
-        libDest_x64,
+        LIB_X64_DEST,
         fileName.substring(
-          fileName.lastIndexOf(lib_x64base) + lib_x64base.length,
+          fileName.lastIndexOf(LIB_X64_BASE) + LIB_X64_BASE.length,
         ),
       );
       promises.push(fs.writeFile(path, u8arr));
     } else if (incReg.test(fileName)) {
       const path = Path.join(
-        includesDest,
+        INCLUDE_DEST,
         fileName.substring(
-          fileName.lastIndexOf(includesBase) + includesBase.length,
+          fileName.lastIndexOf(INCLUDE_BASE) + INCLUDE_BASE.length,
         ),
       );
       promises.push(fs.writeFile(path, u8arr));
@@ -69,9 +69,9 @@ async function promiseWrapper<T>(
 }
 
 async function Download() {
-  const stream = got.stream(downloadSrc);
+  const stream = got.stream(DOWNLOAD_SRC);
   const end = new Promise<void>((resolve, reject) => {
-    stream.once('error', reject)
+    stream.once('error', reject);
     stream.once('close', resolve);
     stream.once('end', resolve);
   });
@@ -82,7 +82,7 @@ async function Download() {
 }
 
 function Extract(buffer: Uint8Array) {
-  const arr = [libSrc_x64, libSrc_x86, includesSrc];
+  const arr = [LIB_X64_SRC, LIB_X86_SRC, INCLUDE_SRC];
   return unzipSync(buffer, {
     filter: (file) => {
       return !!arr.find((nm) => {

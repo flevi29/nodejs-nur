@@ -9,9 +9,11 @@ import {
 } from './types/nur';
 import * as events from 'events';
 import TypedEmitter from 'typed-emitter';
+import { createRequire } from 'module';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { NodeJSNUR } = require('bindings')('nodejs-nur.node') as {
+const { NodeJSNUR } = createRequire(import.meta.url)('bindings')(
+  'nodejs-nur.node',
+) as {
   NodeJSNUR: NodeJSNURStatic;
 };
 
@@ -75,32 +77,35 @@ export class NUR {
   }
 
   public StartTagsStream(
-    progressCb: (...args: any[]) => void,
-    okCb: (...args: any[]) => void,
-    errorCb: (...args: any[]) => void,
+    tagCb: (value: string | number) => void,
+    stoppedCb: () => void,
+    errorCb: (err: string) => void,
     options: StreamOptions,
   ): StreamPromiseReturn {
-    try {
-      const promise = new Promise<void>((resolve, reject) => {
-        const ok = (...args: any[]) => {
-          okCb(args);
-          resolve();
-        };
-        const err = (...args: any[]) => {
-          errorCb(args);
-          reject();
-        };
-        this.nur.StartTagsStream(progressCb, ok, err, options);
-      });
-      return {
-        Stop: () => {
-          this.nur.StopTagsStream();
-          return promise;
-        },
-      };
-    } catch (e: any) {
-      throw new Error(e.message);
-    }
+    const promise = new Promise<void>((resolve, reject) => {
+      try {
+        this.nur.StartTagsStream(
+          tagCb,
+          () => {
+            stoppedCb();
+            resolve();
+          },
+          (err) => {
+            errorCb(err);
+            reject();
+          },
+          options,
+        );
+      } catch (e: any) {
+        reject(Error(e.message));
+      }
+    }).catch(() => {});
+    return {
+      Stop: () => {
+        this.nur.StopTagsStream();
+        return promise;
+      },
+    };
   }
 
   public GetTXLevel(): number {

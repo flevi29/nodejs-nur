@@ -54,13 +54,13 @@ type RSSILimits = {
 
 type DevicesArray = [string, string][];
 
-interface NUREvents {
+type NUREvents = {
   connection: (connected: boolean) => void;
   transport: (connected: boolean) => void;
   moduleBooted: () => void;
   unhandled: () => void;
   tag: (arg: number | string) => void;
-}
+};
 
 type StreamOptions = {
   mode: 'all' | 'one';
@@ -80,8 +80,8 @@ interface INodeJSNUR {
   PingConnectedDevice(): string;
   IsAsyncWorkerRunning(): boolean;
   StartTagsStream(
-    progressCb: (value: string | number) => void,
-    okCb: () => void,
+    tagCb: (value: string | number) => void,
+    stoppedCb: () => void,
     errorCb: (err: string) => void,
     options: StreamOptions,
   ): void;
