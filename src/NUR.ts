@@ -4,8 +4,9 @@ import {
   INodeJSNUR,
   NUREvents,
   RSSILimits,
-  StreamOptions,
   StreamPromiseReturn,
+  StreamOptionsAll,
+  StreamOptionsOne,
 } from './types/nur';
 import * as events from 'events';
 import TypedEmitter from 'typed-emitter';
@@ -76,11 +77,13 @@ export class NUR {
     }
   }
 
-  public StartTagsStream(
-    tagCb: (value: string | number) => void,
+  public StartTagsStream<T extends StreamOptionsAll | StreamOptionsOne>(
+    tagCb: (
+      value: T extends StreamOptionsOne ? string | number : string,
+    ) => void,
     stoppedCb: () => void,
     errorCb: (err: string) => void,
-    options: StreamOptions,
+    options: T,
   ): StreamPromiseReturn {
     const promise = new Promise<void>((resolve, reject) => {
       try {

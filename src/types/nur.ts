@@ -63,7 +63,6 @@ type NUREvents = {
 };
 
 type StreamOptions = {
-  mode: 'all' | 'one';
   factor: number;
   rssiMin: number;
   sleepFor?: number;
@@ -72,25 +71,43 @@ type StreamOptions = {
   session?: number;
 };
 
+type StreamOptionsAll = { mode: 'all' } & StreamOptions;
+type StreamOptionsOne = { mode: 'one' } & StreamOptions;
+
 interface INodeJSNUR {
   Release(): void;
+
   ConnectDeviceUSB(path: string): void;
+
   DisconnectDevice(): void;
+
   IsDeviceConnected(): boolean;
+
   PingConnectedDevice(): string;
+
   IsAsyncWorkerRunning(): boolean;
-  StartTagsStream(
-    tagCb: (value: string | number) => void,
+
+  StartTagsStream<T extends StreamOptionsAll | StreamOptionsOne>(
+    tagCb: (
+      value: T extends StreamOptionsOne ? string | number : string,
+    ) => void,
     stoppedCb: () => void,
     errorCb: (err: string) => void,
-    options: StreamOptions,
+    options: T,
   ): void;
+
   StopTagsStream(): void;
+
   GetTXLevel(): number;
+
   SetTXLevel(level: number): void;
+
   GetRSSILimits(): RSSILimits;
+
   SetRSSIMin(min: number): void;
+
   SetRSSIMax(max: number): void;
+
   DisableRSSIFilters(): void;
 }
 
@@ -111,5 +128,6 @@ export {
   NUREvents,
   NodeJSNURStatic,
   INodeJSNUR,
-  StreamOptions,
+  StreamOptionsAll,
+  StreamOptionsOne,
 };
