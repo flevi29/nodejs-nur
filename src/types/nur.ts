@@ -59,7 +59,6 @@ type NUREvents = {
   transport: (connected: boolean) => void;
   moduleBooted: () => void;
   unhandled: () => void;
-  tag: (arg: number | string) => void;
 };
 
 type StreamOptions = {
