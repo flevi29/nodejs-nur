@@ -1,4 +1,4 @@
-#include "nur-node.h"
+#include "../../include/nur-node.h"
 
 bool asyncRunning = false;
 TagsAsyncMapper *mapper = nullptr;
@@ -184,7 +184,7 @@ Napi::Object NodeJSNUR::Init(Napi::Env env, Napi::Object exports) {
                     "EnumerateUSBDevices",
                     static_cast<napi_property_attributes>(napi_static)
             ),
-            InstanceMethod<&NodeJSNUR::Release>("Release"),
+            InstanceMethod<&NodeJSNUR::Free>("Free"),
             InstanceMethod<&NodeJSNUR::ConnectDeviceUSB>("ConnectDeviceUSB"),
             InstanceMethod<&NodeJSNUR::DisconnectDevice>("DisconnectDevice"),
             InstanceMethod<&NodeJSNUR::IsDeviceConnected>("IsDeviceConnected"),
@@ -211,13 +211,15 @@ NodeJSNUR::NodeJSNUR(const Napi::CallbackInfo &info) :
     Napi::Env env = info.Env();
     if (info.Length() != 1) throw Napi::TypeError::New(env, "Expected 1 argument");
     if (!info[0].IsFunction()) throw Napi::TypeError::New(env, "Argument must be a function");
-    threadSafeFunction = Napi::ThreadSafeFunction::New(
+    tsfn = Napi::ThreadSafeFunction::New(
             env,
             info[0].As<Napi::Function>(),
             "emitter for NUR Notification Callback",
             0,
             1
     );
+    threadSafeFunction = tsfn;
+    freed = false;
     InitHandle(env);
 }
 
@@ -249,7 +251,7 @@ void NodeJSNUR::ConnectDeviceUSB(const Napi::CallbackInfo &info) {
     CheckHandleAndWorker(env);
     HandleNURError(env, ::ConnectDeviceUSB(nurHandle, NewWStr(info[0].As<Napi::String>())));
     auto connected = new bool(true);
-    threadSafeFunction.BlockingCall(connected, ConnectionCallback);
+    tsfn.BlockingCall(connected, ConnectionCallback);
 }
 
 void NodeJSNUR::DisconnectDevice(const Napi::CallbackInfo &info) {
@@ -257,7 +259,7 @@ void NodeJSNUR::DisconnectDevice(const Napi::CallbackInfo &info) {
     if (info.Length() != 0) throw Napi::TypeError::New(env, noArgsErrMsg);
     CheckHandleAndWorker(env);
     HandleNURError(env, ::DisconnectDevice(nurHandle));
-    threadSafeFunction.BlockingCall(new bool(false), ConnectionCallback);
+    tsfn.BlockingCall(new bool(false), ConnectionCallback);
 }
 
 Napi::Value NodeJSNUR::IsAsyncWorkerRunning(const Napi::CallbackInfo &info) {
@@ -288,16 +290,25 @@ void NodeJSNUR::InitHandle(Napi::Env env) {
         throw Napi::Error::New(env, "Error on callback function assignment");
 }
 
-void NodeJSNUR::Release(const Napi::CallbackInfo &info) {
+void NodeJSNUR::Finalize(Napi::Env env) {
+    if (nurHandle != INVALID_HANDLE_VALUE) FreeHandle();
+    if (freed) return;
+    tsfn.Abort();
+    tsfn.Release();
+}
+
+void NodeJSNUR::Free(const Napi::CallbackInfo &info) {
     auto env = info.Env();
     if (info.Length() != 0) throw Napi::TypeError::New(env, noArgsErrMsg);
     if (nurHandle != INVALID_HANDLE_VALUE) FreeHandle();
-    threadSafeFunction.Release();
+    tsfn.Abort();
+    tsfn.Release();
+    freed = true;
 }
 
 NURError NodeJSNUR::FreeHandle() {
     if (::IsDeviceConnected(nurHandle))
-        threadSafeFunction.BlockingCall(new bool(false), ConnectionCallback);
+        tsfn.BlockingCall(new bool(false), ConnectionCallback);
     return ::FreeHandle(nurHandle);
 }
 

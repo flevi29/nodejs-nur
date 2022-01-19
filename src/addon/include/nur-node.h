@@ -86,12 +86,14 @@ public:
 
     NodeJSNUR(const Napi::CallbackInfo &info);
 
+    void Finalize(Napi::Env env) override;
+
 private:
     static Napi::Value EnumerateUSBDevices(const Napi::CallbackInfo &info);
 
     void InitHandle(Napi::Env env);
 
-    void Release(const Napi::CallbackInfo &info);
+    void Free(const Napi::CallbackInfo &info);
 
     NURError FreeHandle();
 
@@ -126,6 +128,10 @@ private:
     void CheckHandleAndWorker(Napi::Env env);
 
     HANDLE nurHandle = INVALID_HANDLE_VALUE;
+
+    Napi::ThreadSafeFunction tsfn;
+
+    bool freed;
 };
 
 #endif /* _NUR_NODE_H_ */

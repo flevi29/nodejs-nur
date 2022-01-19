@@ -74,7 +74,7 @@ type StreamOptionsAll = { mode: 'all' } & StreamOptions;
 type StreamOptionsOne = { mode: 'one' } & StreamOptions;
 
 interface INodeJSNUR {
-  Release(): void;
+  Free(): void;
 
   ConnectDeviceUSB(path: string): void;
 

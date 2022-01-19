@@ -37,8 +37,8 @@ export class NUR {
     }
   }
 
-  public Release(): void {
-    this.nur.Release();
+  public Free(): void {
+    this.nur.Free();
   }
 
   public ConnectDeviceUSB(path: string): void {
@@ -78,23 +78,23 @@ export class NUR {
   }
 
   public StartTagsStream<T extends StreamOptionsAll | StreamOptionsOne>(
+    options: T,
     tagCb: (
       value: T extends StreamOptionsOne ? string | number : string,
     ) => void,
-    stoppedCb: () => void,
-    errorCb: (err: string) => void,
-    options: T,
+    errorCb?: (err: string) => void,
+    stoppedCb?: () => void,
   ): StreamPromiseReturn {
     const promise = new Promise<void>((resolve, reject) => {
       try {
         this.nur.StartTagsStream(
           tagCb,
           () => {
-            stoppedCb();
+            if (stoppedCb) stoppedCb();
             resolve();
           },
           (err) => {
-            errorCb(err);
+            if (errorCb) errorCb(err);
             reject();
           },
           options,
